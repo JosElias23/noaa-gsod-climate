@@ -1,10 +1,12 @@
 # Weather events and temperature in NOAA GSOD, counted in SQL
 
 [![CI](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-44%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-59%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![data](https://img.shields.io/badge/data-NOAA%20GSOD%20public%20domain-lightgrey)](https://www.ncei.noaa.gov/data/global-summary-of-the-day/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+**English** · [Español](README.es.md)
 
 Five years of NOAA's Global Summary of the Day — **20,110,620 station-days from
 12,953 weather stations** — loaded into a local warehouse and queried with SQL.
@@ -159,7 +161,7 @@ published numbers come from NCEI rather than BigQuery.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 44 tests, no network needed
+python -m pytest                        # 59 tests, no network needed
 python scripts/build_warehouse.py       # ~434 MB, about 3 minutes
 python scripts/run_analysis.py          # writes reports/metrics_analysis.json
 python scripts/compare_pushdown.py      # writes reports/metrics_pushdown.json

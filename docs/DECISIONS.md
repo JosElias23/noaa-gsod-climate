@@ -249,7 +249,7 @@ the absolute seconds are not portable.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 44 tests, no network required
+python -m pytest                        # 59 tests, no network required
 python scripts/build_warehouse.py       # 434 MB from NCEI, about 3 minutes
 python scripts/run_analysis.py
 python scripts/compare_pushdown.py

@@ -79,7 +79,7 @@
     }
   ],
   "cross_check_vs_original_notebook": {
-    "largest_relative_difference_pct": 1.737,
+    "largest_relative_difference_pct": 1.74,
     "note": "The original notebook queried bigquery-public-data.noaa_gsod.gsod2024 in March 2025. NCEI's archive is read today and includes station reports filed since, so NCEI is expected to be slightly higher throughout.",
     "per_event": [
       {
@@ -87,42 +87,42 @@
         "event": "rain_drizzle",
         "ncei": 983613,
         "notebook_bigquery": 968620,
-        "relative_pct": 1.548
+        "relative_pct": 1.55
       },
       {
         "delta": 3362,
         "event": "snow_ice_pellets",
         "ncei": 237933,
         "notebook_bigquery": 234571,
-        "relative_pct": 1.433
+        "relative_pct": 1.43
       },
       {
         "delta": 3308,
         "event": "fog",
         "ncei": 221063,
         "notebook_bigquery": 217755,
-        "relative_pct": 1.519
+        "relative_pct": 1.52
       },
       {
         "delta": 3020,
         "event": "thunder",
         "ncei": 176911,
         "notebook_bigquery": 173891,
-        "relative_pct": 1.737
+        "relative_pct": 1.74
       },
       {
         "delta": 43,
         "event": "hail",
         "ncei": 4516,
         "notebook_bigquery": 4473,
-        "relative_pct": 0.961
+        "relative_pct": 0.96
       },
       {
         "delta": 1,
         "event": "tornado_funnel_cloud",
         "ncei": 207,
         "notebook_bigquery": 206,
-        "relative_pct": 0.485
+        "relative_pct": 0.49
       }
     ]
   },

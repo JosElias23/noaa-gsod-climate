@@ -76,7 +76,11 @@ def main() -> int:
             "ncei": int(row["occurrences"]),
             "notebook_bigquery": reference,
             "delta": delta,
-            "relative_pct": round(100 * abs(delta) / reference, 3),
+            # Two decimals, the precision this is published at. Rounding once
+            # here rather than again when writing prose keeps the report and the
+            # README from disagreeing in the last digit, which is exactly the
+            # class of drift this repository exists to complain about.
+            "relative_pct": round(100 * abs(delta) / reference, 2),
         })
     worst = max((c["relative_pct"] for c in checks), default=0.0)
 
