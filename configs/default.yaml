@@ -1,0 +1,17 @@
+# Every parameter that moves a reported number.
+seed: 42
+
+data:
+  # Years pulled from NCEI. 2024 is the year the original notebook analysed;
+  # the earlier ones exist for the multi-year temperature comparison.
+  years: [2020, 2021, 2022, 2023, 2024]
+  cache_dir: data/raw
+  parquet_dir: data/parquet
+
+analysis:
+  # The year the original notebook reported event counts for.
+  event_year: 2024
+  top_countries: 12
+
+paths:
+  duckdb: data/gsod.duckdb

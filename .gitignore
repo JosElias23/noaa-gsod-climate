@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Data is downloaded, not committed: ~500 MB of archives and Parquet.
+data/raw/
+data/parquet/
+data/*.duckdb
+*.parquet
+*.parquet.part
+*.tar.gz
