@@ -10,9 +10,10 @@ Five years of NOAA's Global Summary of the Day — **20,110,620 station-days fro
 12,953 weather stations** — loaded into a local warehouse and queried with SQL.
 
 This is a rebuild of a university project of mine from March 2025, and it exists
-because of what I found when I went back to check it: **the results table in that
-project's README was not what its own code had computed.** Reproducing the
-analysis from scratch, from a different source, settles which was right.
+because of what I found when I went back to check it: **the results table I had
+written in that project's README was not what its own code computed.**
+Reproducing the analysis from scratch, from a different source, settles which was
+right.
 
 ---
 

@@ -40,9 +40,14 @@ table above it.
 That is a table of numbers that were never computed. It is the failure mode I
 care most about avoiding, sitting in my own public work.
 
-The original repository is shared with a classmate who has commits in it, so it
-is not mine to rewrite. This is a separate rebuild that settles the question
-independently.
+**The table is mine.** `git blame` on that section of the original README
+returns my name on the heading and on all three rows. The project was done with
+a classmate who wrote other parts of that file; this particular mistake is not
+his, and it matters enough to state rather than leave to inference.
+
+The original repository is shared, so it is not mine alone to rewrite. This is a
+separate rebuild that settles the question independently and leaves that
+repository as it stands.
 
 ---
 
