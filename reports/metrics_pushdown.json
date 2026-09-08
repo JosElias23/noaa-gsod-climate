@@ -1,0 +1,40 @@
+{
+  "all_arms_agree": true,
+  "arms": [
+    {
+      "arm": "client_side_all_columns",
+      "client_bytes": 675696899,
+      "client_bytes_ratio": 1.0,
+      "rows_to_client": 3931419,
+      "seconds": 1.586,
+      "speedup_vs_baseline": 1.0
+    },
+    {
+      "arm": "client_side_needed_columns",
+      "client_bytes": 23588646,
+      "client_bytes_ratio": 28.6,
+      "rows_to_client": 3931419,
+      "seconds": 0.157,
+      "speedup_vs_baseline": 10.1
+    },
+    {
+      "arm": "sql_pushdown",
+      "client_bytes": 180,
+      "client_bytes_ratio": 3753871.7,
+      "rows_to_client": 1,
+      "seconds": 0.041,
+      "speedup_vs_baseline": 38.7
+    }
+  ],
+  "counts": {
+    "fog": 221063,
+    "hail": 4516,
+    "rain_drizzle": 983613,
+    "snow_ice_pellets": 237933,
+    "thunder": 176911,
+    "tornado_funnel_cloud": 207
+  },
+  "note": "Wall time is the best of three runs on one machine; treat the ratios as the finding, not the absolute seconds. client_bytes is the in-memory size of the frame handed back to Python, which is what the original notebook had to hold to do its counting.",
+  "repeats": 3,
+  "year": 2024
+}

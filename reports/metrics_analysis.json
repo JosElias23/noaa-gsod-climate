@@ -1,0 +1,371 @@
+{
+  "annual_temperature": [
+    {
+      "max_temp_c": 43.33,
+      "mean_temp_c": 13.0842,
+      "min_temp_c": -76.11,
+      "sd_temp_c": 12.4825,
+      "station_days": 4119205,
+      "stations": 12299,
+      "year": 2020
+    },
+    {
+      "max_temp_c": 43.33,
+      "mean_temp_c": 12.7711,
+      "min_temp_c": -78.33,
+      "sd_temp_c": 12.9712,
+      "station_days": 4026550,
+      "stations": 12275,
+      "year": 2021
+    },
+    {
+      "max_temp_c": 43.33,
+      "mean_temp_c": 12.9938,
+      "min_temp_c": -75.83,
+      "sd_temp_c": 12.9133,
+      "station_days": 3994699,
+      "stations": 12319,
+      "year": 2022
+    },
+    {
+      "max_temp_c": 43.33,
+      "mean_temp_c": 13.6051,
+      "min_temp_c": -81.28,
+      "sd_temp_c": 12.5891,
+      "station_days": 4038747,
+      "stations": 12311,
+      "year": 2023
+    },
+    {
+      "max_temp_c": 43.33,
+      "mean_temp_c": 13.9044,
+      "min_temp_c": -78.5,
+      "sd_temp_c": 12.5339,
+      "station_days": 3931419,
+      "stations": 12159,
+      "year": 2024
+    }
+  ],
+  "annual_temperature_balanced_panel": [
+    {
+      "mean_temp_c": 13.0588,
+      "station_days": 3933981,
+      "stations": 11475,
+      "year": 2020
+    },
+    {
+      "mean_temp_c": 12.8106,
+      "station_days": 3875098,
+      "stations": 11475,
+      "year": 2021
+    },
+    {
+      "mean_temp_c": 12.9345,
+      "station_days": 3864022,
+      "stations": 11475,
+      "year": 2022
+    },
+    {
+      "mean_temp_c": 13.4791,
+      "station_days": 3898493,
+      "stations": 11475,
+      "year": 2023
+    },
+    {
+      "mean_temp_c": 13.7654,
+      "station_days": 3787807,
+      "stations": 11475,
+      "year": 2024
+    }
+  ],
+  "cross_check_vs_original_notebook": {
+    "largest_relative_difference_pct": 1.737,
+    "note": "The original notebook queried bigquery-public-data.noaa_gsod.gsod2024 in March 2025. NCEI's archive is read today and includes station reports filed since, so NCEI is expected to be slightly higher throughout.",
+    "per_event": [
+      {
+        "delta": 14993,
+        "event": "rain_drizzle",
+        "ncei": 983613,
+        "notebook_bigquery": 968620,
+        "relative_pct": 1.548
+      },
+      {
+        "delta": 3362,
+        "event": "snow_ice_pellets",
+        "ncei": 237933,
+        "notebook_bigquery": 234571,
+        "relative_pct": 1.433
+      },
+      {
+        "delta": 3308,
+        "event": "fog",
+        "ncei": 221063,
+        "notebook_bigquery": 217755,
+        "relative_pct": 1.519
+      },
+      {
+        "delta": 3020,
+        "event": "thunder",
+        "ncei": 176911,
+        "notebook_bigquery": 173891,
+        "relative_pct": 1.737
+      },
+      {
+        "delta": 43,
+        "event": "hail",
+        "ncei": 4516,
+        "notebook_bigquery": 4473,
+        "relative_pct": 0.961
+      },
+      {
+        "delta": 1,
+        "event": "tornado_funnel_cloud",
+        "ncei": 207,
+        "notebook_bigquery": 206,
+        "relative_pct": 0.485
+      }
+    ]
+  },
+  "event_counts": [
+    {
+      "event": "rain_drizzle",
+      "occurrences": 983613,
+      "pct_of_station_days": 25.02,
+      "station_days": 3931419
+    },
+    {
+      "event": "snow_ice_pellets",
+      "occurrences": 237933,
+      "pct_of_station_days": 6.05,
+      "station_days": 3931419
+    },
+    {
+      "event": "fog",
+      "occurrences": 221063,
+      "pct_of_station_days": 5.62,
+      "station_days": 3931419
+    },
+    {
+      "event": "thunder",
+      "occurrences": 176911,
+      "pct_of_station_days": 4.5,
+      "station_days": 3931419
+    },
+    {
+      "event": "hail",
+      "occurrences": 4516,
+      "pct_of_station_days": 0.11,
+      "station_days": 3931419
+    },
+    {
+      "event": "tornado_funnel_cloud",
+      "occurrences": 207,
+      "pct_of_station_days": 0.01,
+      "station_days": 3931419
+    }
+  ],
+  "monthly_events": [
+    {
+      "fog": 24917.0,
+      "hail": 417.0,
+      "month": 1,
+      "rain_drizzle": 70654.0,
+      "snow_ice_pellets": 56786.0,
+      "station_days": 346531,
+      "thunder": 7031.0,
+      "tornado_funnel_cloud": 14.0
+    },
+    {
+      "fog": 18498.0,
+      "hail": 373.0,
+      "month": 2,
+      "rain_drizzle": 68040.0,
+      "snow_ice_pellets": 38220.0,
+      "station_days": 323345,
+      "thunder": 6968.0,
+      "tornado_funnel_cloud": 16.0
+    },
+    {
+      "fog": 16076.0,
+      "hail": 339.0,
+      "month": 3,
+      "rain_drizzle": 70438.0,
+      "snow_ice_pellets": 28847.0,
+      "station_days": 307991,
+      "thunder": 8925.0,
+      "tornado_funnel_cloud": 6.0
+    },
+    {
+      "fog": 11807.0,
+      "hail": 389.0,
+      "month": 4,
+      "rain_drizzle": 82001.0,
+      "snow_ice_pellets": 16842.0,
+      "station_days": 323438,
+      "thunder": 12365.0,
+      "tornado_funnel_cloud": 13.0
+    },
+    {
+      "fog": 15602.0,
+      "hail": 522.0,
+      "month": 5,
+      "rain_drizzle": 95401.0,
+      "snow_ice_pellets": 7039.0,
+      "station_days": 332890,
+      "thunder": 22456.0,
+      "tornado_funnel_cloud": 24.0
+    },
+    {
+      "fog": 14211.0,
+      "hail": 314.0,
+      "month": 6,
+      "rain_drizzle": 95900.0,
+      "snow_ice_pellets": 1901.0,
+      "station_days": 331348,
+      "thunder": 24950.0,
+      "tornado_funnel_cloud": 21.0
+    },
+    {
+      "fog": 17138.0,
+      "hail": 220.0,
+      "month": 7,
+      "rain_drizzle": 100343.0,
+      "snow_ice_pellets": 1120.0,
+      "station_days": 342371,
+      "thunder": 27040.0,
+      "tornado_funnel_cloud": 16.0
+    },
+    {
+      "fog": 16985.0,
+      "hail": 218.0,
+      "month": 8,
+      "rain_drizzle": 89594.0,
+      "snow_ice_pellets": 1009.0,
+      "station_days": 334577,
+      "thunder": 23949.0,
+      "tornado_funnel_cloud": 24.0
+    },
+    {
+      "fog": 18715.0,
+      "hail": 235.0,
+      "month": 9,
+      "rain_drizzle": 88221.0,
+      "snow_ice_pellets": 2799.0,
+      "station_days": 329959,
+      "thunder": 15413.0,
+      "tornado_funnel_cloud": 20.0
+    },
+    {
+      "fog": 20605.0,
+      "hail": 383.0,
+      "month": 10,
+      "rain_drizzle": 79598.0,
+      "snow_ice_pellets": 11596.0,
+      "station_days": 337832,
+      "thunder": 11984.0,
+      "tornado_funnel_cloud": 26.0
+    },
+    {
+      "fog": 20411.0,
+      "hail": 519.0,
+      "month": 11,
+      "rain_drizzle": 69375.0,
+      "snow_ice_pellets": 27597.0,
+      "station_days": 291524,
+      "thunder": 8393.0,
+      "tornado_funnel_cloud": 16.0
+    },
+    {
+      "fog": 26098.0,
+      "hail": 587.0,
+      "month": 12,
+      "rain_drizzle": 74048.0,
+      "snow_ice_pellets": 44177.0,
+      "station_days": 329613,
+      "thunder": 7437.0,
+      "tornado_funnel_cloud": 11.0
+    }
+  ],
+  "original_readme_claim": {
+    "claimed": {
+      "fog": 120,
+      "rain_drizzle": 85,
+      "snow_ice_pellets": 30
+    },
+    "note": "What the original README's results table stated. It is not what that notebook computed."
+  },
+  "station_coverage_top": [
+    {
+      "country": "US",
+      "station_days": 950331,
+      "stations": 2739
+    },
+    {
+      "country": "CA",
+      "station_days": 284356,
+      "stations": 878
+    },
+    {
+      "country": "RS",
+      "station_days": 267415,
+      "stations": 897
+    },
+    {
+      "country": "CH",
+      "station_days": 177895,
+      "stations": 522
+    },
+    {
+      "country": "AS",
+      "station_days": 174898,
+      "stations": 500
+    },
+    {
+      "country": "BR",
+      "station_days": 145940,
+      "stations": 488
+    },
+    {
+      "country": "NO",
+      "station_days": 86877,
+      "stations": 262
+    },
+    {
+      "country": "JA",
+      "station_days": 83421,
+      "stations": 252
+    },
+    {
+      "country": "UK",
+      "station_days": 68819,
+      "stations": 201
+    },
+    {
+      "country": "FI",
+      "station_days": 67365,
+      "stations": 190
+    },
+    {
+      "country": "IN",
+      "station_days": 66214,
+      "stations": 207
+    },
+    {
+      "country": "FR",
+      "station_days": 60258,
+      "stations": 179
+    }
+  ],
+  "station_overlap": {
+    "share_reporting_every_year": 0.8859,
+    "stations_any_year": 12953,
+    "stations_every_year": 11475
+  },
+  "warehouse": {
+    "first_year": 2020,
+    "last_year": 2024,
+    "rows": 20110620,
+    "stations": 12953
+  },
+  "year": 2024
+}
