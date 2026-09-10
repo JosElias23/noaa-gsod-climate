@@ -64,9 +64,10 @@ def _load(name: str) -> dict | None:
 def metrics():
     analysis = _load("metrics_analysis.json")
     pushdown = _load("metrics_pushdown.json")
-    if analysis is None or pushdown is None:
-        pytest.skip("reports/ not generated; run scripts/run_analysis.py first")
-    return analysis, pushdown
+    uncertainty = _load("metrics_uncertainty.json")
+    if analysis is None or pushdown is None or uncertainty is None:
+        pytest.skip("reports/ not generated; run the scripts in scripts/ first")
+    return analysis, pushdown, uncertainty
 
 
 def _read(names) -> str:
@@ -100,7 +101,7 @@ class TestBothLanguagesExist:
 @pytest.mark.parametrize("lang", LANGS)
 class TestEventCounts:
     def test_every_count_is_quoted_correctly(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, fmt_int, _, _ = prose[lang]
         for row in analysis["event_counts"]:
             printed = fmt_int(row["occurrences"])
@@ -109,14 +110,14 @@ class TestEventCounts:
             )
 
     def test_every_share_is_quoted_correctly(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, _, fmt_pct = prose[lang]
         for row in analysis["event_counts"]:
             share = fmt_pct(row["pct_of_station_days"])
             assert share in text, f"[{lang}] {row['event']} share {share} missing"
 
     def test_shares_do_not_sum_to_one_hundred(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, _, fmt_pct = prose[lang]
         total = sum(r["pct_of_station_days"] for r in analysis["event_counts"])
         assert fmt_pct(total) in text
@@ -126,13 +127,13 @@ class TestEventCounts:
 @pytest.mark.parametrize("lang", LANGS)
 class TestWarehouseFigures:
     def test_row_and_station_counts(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, fmt_int, _, _ = prose[lang]
         assert fmt_int(analysis["warehouse"]["rows"]) in text
         assert fmt_int(analysis["warehouse"]["stations"]) in text
 
     def test_balanced_panel_size(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, fmt_int, _, _ = prose[lang]
         assert fmt_int(analysis["station_overlap"]["stations_every_year"]) in text
 
@@ -140,21 +141,21 @@ class TestWarehouseFigures:
 @pytest.mark.parametrize("lang", LANGS)
 class TestTemperatureFigures:
     def test_each_year_mean_is_quoted(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, fmt_dec, _ = prose[lang]
         for row in analysis["annual_temperature"]:
             printed = fmt_dec(row["mean_temp_c"], 3)
             assert printed in text, f"[{lang}] {int(row['year'])} mean {printed} missing"
 
     def test_both_panels_are_reported(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, fmt_dec, _ = prose[lang]
         for row in analysis["annual_temperature_balanced_panel"]:
             assert fmt_dec(row["mean_temp_c"], 3) in text
 
     def test_the_stated_composition_effect_is_arithmetic(self, metrics, prose, lang):
         """The 0.114 C gap must follow from the data, not be asserted."""
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, fmt_dec, _ = prose[lang]
         naive = {int(r["year"]): r["mean_temp_c"] for r in analysis["annual_temperature"]}
         panel = {int(r["year"]): r["mean_temp_c"]
@@ -167,7 +168,7 @@ class TestTemperatureFigures:
 @pytest.mark.parametrize("lang", LANGS)
 class TestPushdownFigures:
     def test_each_speedup_is_quoted(self, metrics, prose, lang):
-        _, pushdown = metrics
+        _, pushdown, _ = metrics
         text, _, fmt_dec, _ = prose[lang]
         for arm in pushdown["arms"]:
             printed = fmt_dec(arm["speedup_vs_baseline"], 1)
@@ -176,13 +177,13 @@ class TestPushdownFigures:
 @pytest.mark.parametrize("lang", LANGS)
 class TestCrossCheck:
     def test_the_quoted_worst_case_matches(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, _, fmt_pct = prose[lang]
         check = analysis["cross_check_vs_original_notebook"]
         assert fmt_pct(check["largest_relative_difference_pct"]) in text
 
     def test_every_per_event_difference_is_quoted(self, metrics, prose, lang):
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         text, _, _, fmt_pct = prose[lang]
         for c in analysis["cross_check_vs_original_notebook"]["per_event"]:
             assert fmt_pct(c["relative_pct"]) in text, (
@@ -190,16 +191,43 @@ class TestCrossCheck:
             )
 
 
+@pytest.mark.parametrize("lang", LANGS)
+class TestCompositionInterval:
+    """The claim that used to be published without any uncertainty."""
+
+    def test_the_share_and_its_interval_are_quoted(self, metrics, prose, lang):
+        _, _, uncertainty = metrics
+        text, _, _, fmt_pct = prose[lang]
+        c = uncertainty["composition_effect"]
+        for key in ("share_pct", "share_pct_ci95_lower", "share_pct_ci95_upper"):
+            printed = fmt_pct(c[key], 1)
+            assert printed in text, f"[{lang}] {key} = {printed} missing from the prose"
+
+    def test_the_resampling_unit_is_stated(self, metrics, prose, lang):
+        """A cluster bootstrap that does not say what it clusters on is unreadable."""
+        text, _, _, _ = prose[lang]
+        assert ("resamples stations" in text or "remuestrea estaciones" in text), (
+            f"[{lang}] the prose does not say the resampling unit is the station"
+        )
+
+
 class TestDataProperties:
     """Claims about the data itself, independent of how any file words them."""
 
     def test_arms_agreed(self, metrics):
-        _, pushdown = metrics
+        _, pushdown, _ = metrics
         assert pushdown["all_arms_agree"], "the pushdown comparison is void"
+
+    def test_the_composition_interval_excludes_zero(self, metrics):
+        """The write-ups say the effect clears zero; the bootstrap must agree."""
+        _, _, uncertainty = metrics
+        c = uncertainty["composition_effect"]
+        assert c["excludes_zero"]
+        assert c["ci95_lower_c"] > 0
 
     def test_all_differences_point_the_same_way(self, metrics):
         """Both write-ups claim every delta is positive; that must be true."""
-        analysis, _ = metrics
+        analysis, _, _ = metrics
         deltas = [c["delta"] for c in
                   analysis["cross_check_vs_original_notebook"]["per_event"]]
         assert deltas and all(d > 0 for d in deltas)

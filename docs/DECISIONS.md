@@ -153,12 +153,42 @@ panel: only the 11,475 stations that reported in **every** one of the five years
 | 2024 | 13.904 °C | 13.765 °C |
 | **Change** | **+0.820 °C** | **+0.706 °C** |
 
-The balanced panel rises 0.114 °C less, so **about 14% of the apparent warming is
-the station network changing.** The naive figure is not wrong; it answers a
-different question than it appears to.
+The balanced panel rises 0.114 °C less, so **13.9% of the apparent warming is
+the station network changing, 95% CI [7.7%, 19.9%].** The naive figure is not
+wrong; it answers a different question than it appears to.
 
 Reporting only the larger number would have been the more impressive choice and
 the less defensible one.
+
+### 3.2.1 That interval was missing, and adding it changed the wording
+
+The first version of this repository published "about 14%" as a bare difference
+of two differences, with no uncertainty of any kind. That is the same class of
+mistake the whole project is about, one level up: the arithmetic was right and
+the confidence was invented.
+
+`src/gsod/uncertainty.py` now bootstraps it. Two decisions in there are the
+substance:
+
+**The resampling unit is the station, not the station-day.** `annual_temperature`
+already returned `sd_temp_c`, about 12.5 °C. Divided by the square root of four
+million rows that gives a standard error of 0.009 °C, which would make every
+comparison here overwhelmingly significant. It is wrong twice over: that 12.5 °C
+is the spread between a station in Greenland and one in the Sahara, not
+measurement error; and station-days are clustered by station and autocorrelated
+in time, so they are nowhere near four million independent draws.
+`tests/test_uncertainty.py::test_the_resampling_unit_is_the_station` makes that
+testable — two warehouses with identical station-days but different numbers of
+stations must not get the same interval.
+
+**Both panels come from the same draw.** They share most of their data, so their
+errors are strongly positively correlated and the variance of their difference is
+much smaller than the sum of their variances. Bootstrapping them separately and
+subtracting would have overstated the uncertainty.
+
+The result: 0.1136 °C, 95% CI [0.0628, 0.1636], which excludes zero. **The
+finding survives; the wording did not.** "About 14%" implied a precision the
+data does not carry, and the honest range is a twelfth to a fifth.
 
 ### 3.3 What is deliberately not concluded
 
@@ -249,10 +279,11 @@ the absolute seconds are not portable.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 59 tests, no network required
+python -m pytest                        # 72 tests, no network required
 python scripts/build_warehouse.py       # 434 MB from NCEI, about 3 minutes
 python scripts/run_analysis.py
 python scripts/compare_pushdown.py
+python scripts/run_uncertainty.py
 ```
 
 The test suite builds its own miniature GSOD archives in a temporary directory,

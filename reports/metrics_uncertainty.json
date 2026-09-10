@@ -1,0 +1,22 @@
+{
+  "composition_effect": {
+    "balanced_change_c": 0.7066,
+    "ci95_lower_c": 0.0628,
+    "ci95_upper_c": 0.1636,
+    "composition_effect_c": 0.1136,
+    "excludes_zero": true,
+    "n_resamples": 2000,
+    "n_stations": 12953,
+    "n_stations_balanced": 11475,
+    "naive_change_c": 0.8202,
+    "note": "Stations are resampled with replacement, not station-days: rows are clustered by station and autocorrelated in time, so a row-level interval would be far too narrow. Both panels are recomputed from the same draw, because they share most of their data and the variance of their difference is much smaller than the sum of their variances.",
+    "resampling_unit": "station",
+    "share_pct": 13.9,
+    "share_pct_ci95_lower": 7.7,
+    "share_pct_ci95_upper": 19.9
+  },
+  "row_level_standard_error_for_contrast": {
+    "note": "Standard error of the change in mean, computed as if every station-day were an independent draw. Reported only to show how much too narrow that assumption is; it is not used for any published interval.",
+    "value_c": 0.00882
+  }
+}

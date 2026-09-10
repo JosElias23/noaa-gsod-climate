@@ -1,7 +1,7 @@
 # Eventos meteorológicos y temperatura en NOAA GSOD, contados en SQL
 
 [![CI](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-59%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![data](https://img.shields.io/badge/data-NOAA%20GSOD%20dominio%20p%C3%BAblico-lightgrey)](https://www.ncei.noaa.gov/data/global-summary-of-the-day/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -121,12 +121,25 @@ La columna derecha conserva solo las **11.475 estaciones que reportaron en cada
 uno de los cinco años** (88,6 % de las 12.953 que aparecen alguna vez). Mismos
 años, misma consulta, un panel que no puede cambiar de composición.
 
-Sube 0,114 °C menos. **Cerca del 14 % del calentamiento aparente en la serie
-ingenua es la red de estaciones cambiando, no el clima** — el conjunto que
-reportó en 2024 sencillamente no es el que reportó en 2020.
+Sube 0,114 °C menos. **El 13,9 % del calentamiento aparente en la serie ingenua
+es la red de estaciones cambiando y no el clima, IC 95 % [7,7 %, 19,9 %]** — el
+conjunto que reportó en 2024 sencillamente no es el que reportó en 2020.
 
 Esa es toda la razón por la que el panel balanceado está aquí. El número ingenuo
 no está mal: responde una pregunta ligeramente distinta de la que aparenta.
+
+El intervalo importa más que el estimador puntual, y sale de un bootstrap que
+**remuestrea estaciones, no registros estación-día**. Las filas están agrupadas
+—unos 320 días del mismo instrumento en el mismo lugar— y autocorrelacionadas,
+así que tratarlas como observaciones independientes da un intervalo demasiado
+angosto para defenderlo. Los dos paneles se recalculan sobre el mismo remuestreo,
+porque comparten la mayor parte de los datos y la varianza de su diferencia es
+mucho menor que la suma de sus varianzas.
+
+El efecto excluye el cero, así que el problema de composición es real. Pero
+"cerca del 14 %" sugería una precisión que los datos no tienen: está entre un
+doceavo y un quinto del calentamiento aparente. Lo produce
+`scripts/run_uncertainty.py`, que escribe `reports/metrics_uncertainty.json`.
 
 **Lo que esto no demuestra.** Cinco años no son una tendencia climática, y esto
 no es una temperatura media global. Es un promedio sin ponderar sobre las
@@ -167,10 +180,11 @@ por qué los números publicados vienen de NCEI y no de BigQuery.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 59 tests, sin necesidad de red
+python -m pytest                        # 72 tests, sin necesidad de red
 python scripts/build_warehouse.py       # ~434 MB, unos 3 minutos
 python scripts/run_analysis.py          # escribe reports/metrics_analysis.json
 python scripts/compare_pushdown.py      # escribe reports/metrics_pushdown.json
+python scripts/run_uncertainty.py       # escribe reports/metrics_uncertainty.json
 ```
 
 Cada cifra de este README se lee de `reports/metrics_analysis.json`,
