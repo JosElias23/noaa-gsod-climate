@@ -154,7 +154,7 @@ panel: only the 11,475 stations that reported in **every** one of the five years
 | **Change** | **+0.820 °C** | **+0.706 °C** |
 
 The balanced panel rises 0.114 °C less, so **13.9% of the apparent warming is
-the station network changing, 95% CI [7.7%, 19.9%].** The naive figure is not
+the station network changing, 95% CI [8.2%, 18.9%].** The naive figure is not
 wrong; it answers a different question than it appears to.
 
 Reporting only the larger number would have been the more impressive choice and
@@ -180,6 +180,14 @@ in time, so they are nowhere near four million independent draws.
 `tests/test_uncertainty.py::test_the_resampling_unit_is_the_station` makes that
 testable — two warehouses with identical station-days but different numbers of
 stations must not get the same interval.
+
+**The share is resampled, not derived.** The first version of this computed the
+interval for the *effect* and then divided its two endpoints by the point
+estimate of the naive change, which treats that denominator as a known constant.
+It is not — it is an estimate from the same stations, and it moves in every
+draw. The share is now computed inside the bootstrap loop, and the interval it
+gives is [8.2%, 18.9%] rather than the [7.7%, 19.9%] the derivation produced.
+Slightly narrower, because numerator and denominator move together.
 
 **Both panels come from the same draw.** They share most of their data, so their
 errors are strongly positively correlated and the variance of their difference is
@@ -217,16 +225,26 @@ The point of a rebuild is to be able to disagree with the thing being rebuilt.
 | hail | 4,516 | 4,473 | +0.96% |
 | tornado_funnel_cloud | 207 | 206 | +0.49% |
 
-Largest disagreement 1.74%, and **every difference is positive**. That one-sided
-pattern is the evidence: NOAA continues ingesting late station reports, so an
-archive read later holds more of 2024 than a query run in March 2025 did. Six
-independent random errors would not all point the same way.
+Largest disagreement 1.74%, and **every difference is positive**. NOAA continues
+ingesting late station reports, so an archive read later holds more of 2024 than
+a query run in March 2025 did.
+
+**Correction.** An earlier version of this section argued that "six independent
+random errors would not all point the same way", which implies odds of about one
+in sixty-four. They are not six independent errors. All six counts are sums of
+flags over the same row set, so a larger row set raises all of them almost
+deterministically. The one-sided pattern is a single observation consistent with
+late ingestion, not six confirmations of it.
 
 The comparison is not a note in a document — `NOTEBOOK_2024` is a constant in
 `scripts/run_analysis.py` and the check runs on every execution, so a future
 change that breaks agreement shows up in `reports/metrics_analysis.json`.
 
-**Conclusion: the original notebook was correct. Only its write-up was wrong.**
+**Conclusion: the original notebook's 2024 event counts were correct. Only its
+write-up was wrong.** What was checked is those six counts for one year. The same
+notebook also produced a temperature analysis and pulled the NASA POWER API for
+40°N 100°W to compare against NOAA; neither is reproduced here, so neither is
+vouched for.
 That is the more uncomfortable result of the two, because the code is the part a
 reader would check.
 
@@ -279,7 +297,7 @@ the absolute seconds are not portable.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 72 tests, no network required
+python -m pytest                        # 74 tests, no network required
 python scripts/build_warehouse.py       # 434 MB from NCEI, about 3 minutes
 python scripts/run_analysis.py
 python scripts/compare_pushdown.py

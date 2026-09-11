@@ -1,7 +1,7 @@
 # Eventos meteorológicos y temperatura en NOAA GSOD, contados en SQL
 
 [![CI](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![data](https://img.shields.io/badge/data-NOAA%20GSOD%20dominio%20p%C3%BAblico-lightgrey)](https://www.ncei.noaa.gov/data/global-summary-of-the-day/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -45,8 +45,12 @@ magnitud.
 ### Dos caminos independientes coinciden
 
 El original consultó `bigquery-public-data.noaa_gsod.gsod2024` en marzo de 2025.
-Este repositorio parsea hoy el archivo anual de NCEI. Distinta fuente, distinto
-código, distinto momento de descarga:
+Este repositorio parsea hoy el archivo anual de NCEI. Son dos *lectores*
+independientes —distinto código, distinta vía de acceso, distinto momento de
+descarga— pero no dos *mediciones* independientes: el `noaa_gsod` de BigQuery es
+un espejo del mismo producto de NCEI, como dice la sección 2.1 de
+[`docs/DECISIONS.md`](docs/DECISIONS.md). Esto valida el parseo y la descarga, no
+las observaciones en sí.
 
 | Evento | NCEI (este repo) | Corrida original en BigQuery | Diferencia |
 |---|---:|---:|---:|
@@ -60,11 +64,15 @@ código, distinto momento de descarga:
 La discrepancia mayor es de **1,74 %**, y **todas las diferencias son
 positivas**. Esa dirección es la pista: NOAA sigue incorporando reportes de
 estaciones enviados tarde, así que un archivo leído en 2026 contiene algo más de
-2024 que una consulta hecha en marzo de 2025. Seis errores aleatorios no
-apuntarían todos al mismo lado.
+2024 que una consulta hecha en marzo de 2025.
 
-**Es decir: los números del notebook eran correctos. Lo que estaba mal era el
-texto publicado** — que es la falla más incómoda de las dos, porque el código es
+Eso es una observación, no seis. Los seis conteos son sumas de indicadores sobre
+las mismas filas, así que si el conjunto de filas creció, todos suben juntos: la
+coincidencia de signo no son seis lanzamientos independientes, y tratarla así
+sobreestimaría bastante la evidencia.
+
+**Es decir: los conteos de eventos de 2024 del notebook eran correctos. Lo que
+estaba mal era el texto publicado** — que es la falla más incómoda de las dos, porque el código es
 la parte que la gente sí revisa.
 
 ### Y la columna de porcentaje no podía significar lo que parecía
@@ -119,10 +127,10 @@ escrita para BigQuery.
 
 La columna derecha conserva solo las **11.475 estaciones que reportaron en cada
 uno de los cinco años** (88,6 % de las 12.953 que aparecen alguna vez). Mismos
-años, misma consulta, un panel que no puede cambiar de composición.
+años, misma consulta, un panel cuya *membresía* de estaciones no puede cambiar.
 
 Sube 0,114 °C menos. **El 13,9 % del calentamiento aparente en la serie ingenua
-es la red de estaciones cambiando y no el clima, IC 95 % [7,7 %, 19,9 %]** — el
+es la red de estaciones cambiando y no el clima, IC 95 % [8,2 %, 18,9 %]** — el
 conjunto que reportó en 2024 sencillamente no es el que reportó en 2020.
 
 Esa es toda la razón por la que el panel balanceado está aquí. El número ingenuo
@@ -180,7 +188,7 @@ por qué los números publicados vienen de NCEI y no de BigQuery.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 72 tests, sin necesidad de red
+python -m pytest                        # 74 tests, sin necesidad de red
 python scripts/build_warehouse.py       # ~434 MB, unos 3 minutos
 python scripts/run_analysis.py          # escribe reports/metrics_analysis.json
 python scripts/compare_pushdown.py      # escribe reports/metrics_pushdown.json

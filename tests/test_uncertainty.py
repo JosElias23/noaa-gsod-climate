@@ -141,3 +141,34 @@ class TestReproducibility:
         b = composition_effect(warehouse(tmp_path / "b", rows), 300, seed=8)
         assert a.effect == pytest.approx(b.effect)
         assert (a.ci_lower, a.ci_upper) != (b.ci_lower, b.ci_upper)
+
+
+class TestShareIsResampled:
+    """The share's interval must come from the bootstrap, not from a division.
+
+    Dividing the effect's two percentiles by the point estimate of the naive
+    change treats that denominator as known. It is an estimate drawn from the
+    same stations, and it moves in every draw.
+    """
+
+    def test_the_share_interval_is_not_the_derived_one(self, tmp_path):
+        con = warehouse(tmp_path, [
+            (f"S{i:03d}", y, 10.0 + (i % 9)) for i in range(90) for y in (2020, 2024)
+        ] + [(f"N{i:03d}", 2024, 45.0) for i in range(25)])
+        effect = composition_effect(con, n_resamples=800, seed=42)
+        summary = effect.summary()
+
+        derived_lo = 100 * effect.ci_lower / effect.naive_change
+        derived_hi = 100 * effect.ci_upper / effect.naive_change
+        assert (summary["share_pct_ci95_lower"] != pytest.approx(derived_lo, abs=1e-9)
+                or summary["share_pct_ci95_upper"] != pytest.approx(derived_hi, abs=1e-9)), (
+            "the share interval is identical to the derived one, so it was not "
+            "resampled"
+        )
+
+    def test_the_share_interval_brackets_the_share(self, tmp_path):
+        con = warehouse(tmp_path, [
+            (f"S{i:03d}", y, 10.0 + (i % 9)) for i in range(90) for y in (2020, 2024)
+        ] + [(f"N{i:03d}", 2024, 45.0) for i in range(25)])
+        s = composition_effect(con, n_resamples=800, seed=42).summary()
+        assert s["share_pct_ci95_lower"] <= s["share_pct"] <= s["share_pct_ci95_upper"]

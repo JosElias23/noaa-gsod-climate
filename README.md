@@ -1,7 +1,7 @@
 # Weather events and temperature in NOAA GSOD, counted in SQL
 
 [![CI](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![data](https://img.shields.io/badge/data-NOAA%20GSOD%20public%20domain-lightgrey)](https://www.ncei.noaa.gov/data/global-summary-of-the-day/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -43,8 +43,11 @@ the ranking inverted and the magnitudes off by four orders of magnitude.
 ### Two independent paths agree
 
 The original queried `bigquery-public-data.noaa_gsod.gsod2024` in March 2025.
-This repository parses NCEI's yearly archive today. Different source, different
-code, different year of retrieval:
+This repository parses NCEI's yearly archive today. Two independent *readers* —
+different code, different access path, different year of retrieval — though not
+independent *measurements*: BigQuery's `noaa_gsod` mirrors the same NCEI product,
+as [`docs/DECISIONS.md`](docs/DECISIONS.md) section 2.1 says outright. This
+validates the parse and the retrieval, not the observations themselves.
 
 | Event | NCEI (this repo) | Original BigQuery run | Difference |
 |---|---:|---:|---:|
@@ -57,10 +60,14 @@ code, different year of retrieval:
 
 Largest disagreement **1.74%**, and every difference is positive. That direction
 is the tell: NOAA keeps ingesting station reports filed late, so an archive read
-in 2026 holds slightly more of 2024 than a query run in March 2025 did. A random
-discrepancy would not be one-signed across all six.
+in 2026 holds slightly more of 2024 than a query run in March 2025 did.
 
-**So the notebook's numbers were sound. Only the write-up was wrong** — which is
+That is one observation, not six. All six counts are sums of flags over the same
+rows, so if the row set grew they all rise together — the agreement in sign is
+not six independent coin flips, and treating it as such would overstate the
+evidence considerably.
+
+**So the notebook's 2024 event counts were sound. Only the write-up was wrong** — which is
 the more uncomfortable failure, because the code is the part people check.
 
 ### And the percentage column could not mean what it looked like
@@ -114,10 +121,10 @@ BigQuery.
 
 The right-hand column keeps only the **11,475 stations that reported in every one
 of the five years** (88.6% of the 12,953 that appear at all). Same years, same
-query, a panel that cannot change composition.
+query, a panel whose station *membership* cannot change.
 
 It rises by 0.114 °C less. **13.9% of the apparent warming in the naive series
-is the station network changing rather than the climate, 95% CI [7.7%, 19.9%]** —
+is the station network changing rather than the climate, 95% CI [8.2%, 18.9%]** —
 the set of stations reporting in 2024 is simply not the set that reported in 2020.
 
 That is the whole reason the balanced panel is in here. The naive number is not
@@ -174,7 +181,7 @@ published numbers come from NCEI rather than BigQuery.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 72 tests, no network needed
+python -m pytest                        # 74 tests, no network needed
 python scripts/build_warehouse.py       # ~434 MB, about 3 minutes
 python scripts/run_analysis.py          # writes reports/metrics_analysis.json
 python scripts/compare_pushdown.py      # writes reports/metrics_pushdown.json

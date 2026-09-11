@@ -12,8 +12,8 @@
     "note": "Stations are resampled with replacement, not station-days: rows are clustered by station and autocorrelated in time, so a row-level interval would be far too narrow. Both panels are recomputed from the same draw, because they share most of their data and the variance of their difference is much smaller than the sum of their variances.",
     "resampling_unit": "station",
     "share_pct": 13.9,
-    "share_pct_ci95_lower": 7.7,
-    "share_pct_ci95_upper": 19.9
+    "share_pct_ci95_lower": 8.2,
+    "share_pct_ci95_upper": 18.9
   },
   "row_level_standard_error_for_contrast": {
     "note": "Standard error of the change in mean, computed as if every station-day were an independent draw. Reported only to show how much too narrow that assumption is; it is not used for any published interval.",

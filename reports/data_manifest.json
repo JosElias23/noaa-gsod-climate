@@ -1,48 +1,49 @@
 {
   "archives": [
     {
-      "cached": false,
+      "cached": true,
       "file": "2020.tar.gz",
       "parquet": "gsod_2020.parquet",
       "parquet_bytes": 47773049,
-      "rows": 4119205,
       "sha256": "db6dab5c94d1cb6f5764cd242cea40ad425a9d8d6dc32adb13bd75601f370236",
       "size_bytes": 110079278,
-      "stations": 12299,
       "year": 2020
     },
     {
-      "cached": false,
+      "cached": true,
       "file": "2021.tar.gz",
       "parquet": "gsod_2021.parquet",
       "parquet_bytes": 46653694,
-      "rows": 4026550,
       "sha256": "7554c1df499987f667e7e8656333ef98d5be7c1b486935128f31dfd9bee28dff",
       "size_bytes": 108057900,
-      "stations": 12275,
       "year": 2021
     },
     {
-      "cached": false,
+      "cached": true,
       "file": "2022.tar.gz",
       "parquet": "gsod_2022.parquet",
       "parquet_bytes": 46324527,
-      "rows": 3994699,
       "sha256": "4b50eafff91fdb9678378a9611e69d724b3c4cd81a3d0db5ee26b7fe8ec81d0b",
       "size_bytes": 107099789,
-      "stations": 12319,
       "year": 2022
     },
     {
-      "cached": false,
+      "cached": true,
       "file": "2023.tar.gz",
       "parquet": "gsod_2023.parquet",
       "parquet_bytes": 46669904,
-      "rows": 4038747,
       "sha256": "f2c9f7f672405bd1036f477a406cbb420ada33335f5e15c9bf9789210148d4d7",
       "size_bytes": 108776234,
-      "stations": 12311,
       "year": 2023
+    },
+    {
+      "cached": true,
+      "file": "2024.tar.gz",
+      "parquet": "gsod_2024.parquet",
+      "parquet_bytes": 45413323,
+      "sha256": "49ca98f913f9809f0b7368c77647b181a2f1586ec95d95d4ce345e79b47c5e3f",
+      "size_bytes": 106289853,
+      "year": 2024
     }
   ],
   "source": "NCEI global-summary-of-the-day archive",
@@ -50,6 +51,7 @@
     2020,
     2021,
     2022,
-    2023
+    2023,
+    2024
   ]
 }

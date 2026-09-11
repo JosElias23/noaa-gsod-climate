@@ -54,6 +54,11 @@ ORDER BY station, year
 """
 
 
+def _round_or_none(x: float, places: int = 1) -> float | None:
+    """None rather than nan, so the JSON says "undefined" instead of "NaN"."""
+    return None if x != x else round(x, places)
+
+
 @dataclass(frozen=True)
 class CompositionEffect:
     """The composition effect and its cluster-bootstrap interval."""
@@ -64,6 +69,8 @@ class CompositionEffect:
     share_of_naive: float
     ci_lower: float
     ci_upper: float
+    share_ci_lower: float
+    share_ci_upper: float
     n_resamples: int
     n_stations: int
     n_stations_balanced: int
@@ -79,9 +86,9 @@ class CompositionEffect:
             # Percentages at one decimal, the precision this is published at.
             # Storing the raw ratio and formatting it later means rounding twice,
             # and 0.0765 then prints as 7.6% where the ratio prints as 7.7%.
-            "share_pct": round(100 * self.share_of_naive, 1),
-            "share_pct_ci95_lower": round(100 * self.ci_lower / self.naive_change, 1),
-            "share_pct_ci95_upper": round(100 * self.ci_upper / self.naive_change, 1),
+            "share_pct": _round_or_none(100 * self.share_of_naive),
+            "share_pct_ci95_lower": _round_or_none(100 * self.share_ci_lower),
+            "share_pct_ci95_upper": _round_or_none(100 * self.share_ci_upper),
             "ci95_lower_c": round(self.ci_lower, 4),
             "ci95_upper_c": round(self.ci_upper, 4),
             "excludes_zero": self.excludes_zero,
@@ -140,15 +147,33 @@ def composition_effect(
 
     rng = np.random.default_rng(seed)
     draws = np.empty(n_resamples)
+    share_draws = np.empty(n_resamples)
     for b in range(n_resamples):
         pick = rng.integers(0, len(stations), size=len(stations))
         t, c = totals[pick], counts[pick]
         keep = balanced[pick]
-        draws[b] = (_weighted_change(t, c, first, last)
-                    - _weighted_change(t[keep], c[keep], first, last))
+        naive_b = _weighted_change(t, c, first, last)
+        balanced_b = _weighted_change(t[keep], c[keep], first, last)
+        draws[b] = naive_b - balanced_b
+        # The share is resampled too, not derived afterwards. Dividing the
+        # numerator's percentiles by the point estimate of the denominator would
+        # treat that denominator as known, and it is itself an estimate drawn
+        # from the same stations. Both move together in every draw.
+        share_draws[b] = (draws[b] / naive_b) if naive_b else np.nan
 
-    draws = draws[~np.isnan(draws)]
+    ok = ~np.isnan(draws)
+    draws, share_draws = draws[ok], share_draws[ok]
     lower, upper = np.percentile(draws, [2.5, 97.5])
+
+    # When the naive change is zero the share is undefined -- not zero. It shows
+    # up in tests of a perfectly balanced network and would otherwise raise from
+    # np.percentile on an empty array, which reads as a bug rather than as a
+    # quantity that does not exist.
+    usable = share_draws[~np.isnan(share_draws)]
+    if usable.size:
+        share_lower, share_upper = np.percentile(usable, [2.5, 97.5])
+    else:
+        share_lower = share_upper = float("nan")
 
     return CompositionEffect(
         naive_change=naive_change,
@@ -157,6 +182,8 @@ def composition_effect(
         share_of_naive=effect / naive_change if naive_change else float("nan"),
         ci_lower=float(lower),
         ci_upper=float(upper),
+        share_ci_lower=float(share_lower),
+        share_ci_upper=float(share_upper),
         n_resamples=int(len(draws)),
         n_stations=int(len(stations)),
         n_stations_balanced=int(balanced.sum()),

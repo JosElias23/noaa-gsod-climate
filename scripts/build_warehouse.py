@@ -10,6 +10,7 @@ Both the archives and the Parquet are cached, so this is a one-off.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
@@ -18,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from gsod.data import download_year, read_archive, write_parquet  # noqa: E402
+from gsod.data import download_year, read_archive, sha256_of, write_parquet  # noqa: E402
 from gsod.utils import (  # noqa: E402
     PROJECT_ROOT,
     human_bytes,
@@ -51,9 +52,28 @@ def main() -> int:
     for year in years:
         target = parquet_dir / f"gsod_{year}.parquet"
         if target.exists() and not args.force:
-            log.info("%d  cached (%s)", year, human_bytes(target.stat().st_size))
-            manifest.append({"year": year, "parquet": target.name,
-                             "parquet_bytes": target.stat().st_size, "cached": True})
+            # Still checksum the archive. Skipping it on the cached path was how
+            # the load-bearing year ended up in the manifest with no provenance
+            # at all: re-running for a year already converted recorded a size and
+            # nothing else. If the archive is gone the entry says so explicitly
+            # rather than silently omitting the field.
+            entry = {"year": year, "parquet": target.name,
+                     "parquet_bytes": target.stat().st_size, "cached": True}
+            archive_path = cache_dir / f"{year}.tar.gz"
+            if archive_path.exists():
+                entry["size_bytes"] = archive_path.stat().st_size
+                entry["sha256"] = sha256_of(archive_path)
+                entry["file"] = archive_path.name
+            else:
+                entry["sha256"] = None
+                entry["provenance_note"] = (
+                    "Parquet present but the source archive is no longer cached; "
+                    "re-run with --force to restore a verified checksum."
+                )
+            log.info("%d  cached (%s, sha256 %s)", year,
+                     human_bytes(target.stat().st_size),
+                     (entry["sha256"] or "unavailable")[:12])
+            manifest.append(entry)
             continue
 
         started = time.time()
@@ -76,8 +96,22 @@ def main() -> int:
             "cached": False,
         })
 
+    # Merge rather than overwrite. Running this once for 2024 and then again for
+    # 2020-2023 replaced the first manifest with the second, and the year that
+    # produces every headline number was left with no recorded checksum while the
+    # README claimed otherwise. Provenance that a second invocation can silently
+    # delete is not provenance.
+    existing = PROJECT_ROOT / "reports" / "data_manifest.json"
+    merged = {}
+    if existing.exists():
+        for entry in json.loads(existing.read_text(encoding="utf-8")).get("archives", []):
+            merged[entry["year"]] = entry
+    for entry in manifest:
+        merged[entry["year"]] = entry
+
     save_json({"source": "NCEI global-summary-of-the-day archive",
-               "years": years, "archives": manifest},
+               "years": sorted(merged),
+               "archives": [merged[y] for y in sorted(merged)]},
               "reports/data_manifest.json")
     log.info("wrote reports/data_manifest.json")
     return 0
