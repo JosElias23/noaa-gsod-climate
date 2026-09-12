@@ -45,8 +45,16 @@ def save_json(payload: Any, path: str | Path) -> Path:
 
 
 def human_bytes(n: float) -> str:
-    for unit in ("B", "KB", "MB", "GB"):
+    """Binary units, labelled as binary units.
+
+    This divided by 1024 and printed "MB" until the BigQuery arm arrived, which
+    prices bytes per **TiB**. A reader checking 68.0 MB against a per-TB rate
+    would have got a different answer than the one published, for no better
+    reason than a loose label. Powers of 1024 are KiB/MiB/GiB/TiB, so that is
+    what they now say.
+    """
+    for unit in ("B", "KiB", "MiB", "GiB"):
         if abs(n) < 1024:
             return f"{n:.1f} {unit}"
         n /= 1024
-    return f"{n:.1f} TB"
+    return f"{n:.1f} TiB"

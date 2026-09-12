@@ -67,8 +67,8 @@ NOAA publishes the identical data three ways:
 | `s3://noaa-gsod-pds` | none for reads | yes |
 | NCEI yearly `.tar.gz` | none | yes |
 
-NCEI wins on shape as much as on access: one 100 MB request per year against
-roughly 12,000 objects on S3. The BigQuery version is kept as
+NCEI wins on shape as much as on access: one request of about 90 MiB per year
+against roughly 12,000 objects on S3. The BigQuery version is kept as
 [`sql/bigquery.sql`](../sql/bigquery.sql) so that route is executable rather than
 merely described.
 
@@ -257,8 +257,8 @@ identical data:
 
 | Arm | Time | Rows to client | Client memory | Speed-up |
 |---|---:|---:|---:|---:|
-| `SELECT *`, count in pandas | 1.586 s | 3,931,419 | 644 MB | 1.0× |
-| Six flag columns only | 0.157 s | 3,931,419 | 22.5 MB | 10.1× |
+| `SELECT *`, count in pandas | 1.586 s | 3,931,419 | 644 MiB | 1.0× |
+| Six flag columns only | 0.157 s | 3,931,419 | 22.5 MiB | 10.1× |
 | `SUM(...)` in SQL | 0.041 s | 1 | 180 B | 38.7× |
 
 **Column pruning alone is 10× of the 38.7×**, and it is a one-word change. Moving
@@ -273,11 +273,89 @@ the absolute seconds are not portable.
 
 ---
 
+## 5.1 The BigQuery arm, which turned out not to run at all
+
+Section 2.1 chose NCEI over BigQuery so that a stranger could reproduce every
+number without a Google account, and kept `sql/bigquery.sql` so the cloud route
+would be executable rather than merely described. The limitations section then
+said that file was "checked by eye against the DuckDB queries, not by a test,
+because CI has no billing account. If it drifts, nothing catches it."
+
+`scripts/run_bigquery.py` now runs it. The first thing it did was fail.
+
+```
+No matching signature for aggregate function COUNTIF
+  Argument types: STRING
+  Signature: COUNTIF(BOOL)
+```
+
+**The file had never been executed, and it could not have been.** In
+`bigquery-public-data.noaa_gsod` the six indicator columns are `STRING` holding
+'0' and '1', not `BOOL`, so `COUNTIF(fog)` is a type error. The comment at the
+top promising that this "returns the same six numbers" described a query that
+returned nothing. Checked by eye is worth exactly this much: the eye reads
+`COUNTIF(fog)` as obviously correct, because in the DuckDB warehouse it is.
+
+With `= '1'` added, it runs.
+
+### What the cloud arm says that the local one cannot
+
+**The counts are identical, not merely close.**
+
+| Event | NCEI archive | BigQuery | Difference |
+|---|---:|---:|---:|
+| rain_drizzle | 983,613 | 983,613 | 0 |
+| snow_ice_pellets | 237,933 | 237,933 | 0 |
+| fog | 221,063 | 221,063 | 0 |
+| thunder | 176,911 | 176,911 | 0 |
+| hail | 4,516 | 4,516 | 0 |
+| tornado_funnel_cloud | 207 | 207 | 0 |
+
+Zero on all six, and BigQuery's table holds 3,931,419 rows against the 3,931,419
+station-days this repository parsed. My `csv.DictReader` and Google's ingestion
+of the same NOAA product agree exactly.
+
+That also sharpens section 4. The +1.5% differences there were against a
+BigQuery query run in **March 2025**; a BigQuery query run **today** matches
+today's archive perfectly. So those differences were about *when* the data was
+read and not about *how*, which is what late ingestion predicts and what the
+corrected wording in section 4 now says.
+
+**Column pruning becomes a line item.** Section 5 measured it in seconds and
+client memory. BigQuery bills bytes scanned, so the same one-word change has a
+price:
+
+| Query | Bytes scanned | USD | Ran? |
+|---|---:|---:|:--|
+| `SELECT *` | 729.6 MiB | 0.0043 | **no, priced only** |
+| Six flag columns, aggregated | 68.0 MiB | 0.0004 | yes, 1.41 s |
+| Monthly grouping | 98.0 MiB | 0.0006 | yes, 1.10 s |
+
+**10.8x fewer bytes for naming six columns**, against the 10.1x speed-up the
+same change bought locally. Two engines, two different quantities -- bytes
+against seconds -- landing in the same place. The local experiment said column
+pruning was most of the win; the cloud one says it is most of the bill.
+
+The `SELECT *` arm is **priced and never executed**. BigQuery will plan a query
+and report what it would scan without running it, for free and without a billing
+account, so demonstrating the cost of a query nobody should run does not require
+paying for it. `tests/test_bigquery.py` asserts that arm stayed unexecuted.
+
+### What this does not make the repository
+
+A cloud project. The published numbers still come from NCEI, for the reason
+section 2.1 gives: a reader without a Google account must be able to check them.
+What changed is that the alternative path is now executed, priced and tested
+rather than asserted, and that the assertion turned out to be false.
+
+The whole run scanned 166 MiB and cost about a tenth of a US cent, well inside
+BigQuery's free monthly terabyte. The rate is named and dated in the script,
+because a cost figure whose assumption is invisible is not a cost figure.
+
+---
+
 ## 6. What was not done
 
-- **No BigQuery run.** `sql/bigquery.sql` is checked by eye against the DuckDB
-  queries, not by a test, because CI has no billing account. If it drifts,
-  nothing catches it.
 - **Unweighted station means.** No land-area or population weighting, so dense
   networks dominate every average here.
 - **No station-level quality control.** Sentinels are handled; drifting
@@ -297,16 +375,20 @@ the absolute seconds are not portable.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 74 tests, no network required
-python scripts/build_warehouse.py       # 434 MB from NCEI, about 3 minutes
+python -m pytest                        # 92 tests, no network required
+python scripts/build_warehouse.py       # 434 MiB from NCEI, about 3 minutes
 python scripts/run_analysis.py
 python scripts/compare_pushdown.py
 python scripts/run_uncertainty.py
+
+pip install -e ".[cloud]"               # optional: the BigQuery arm
+python scripts/run_bigquery.py --project YOUR_PROJECT_ID
 ```
 
 The test suite builds its own miniature GSOD archives in a temporary directory,
-so it needs neither the network nor the 434 MB download. A test that requires the
+so it needs neither the network nor the 434 MiB download. A test that requires the
 full dataset is a test nobody runs.
 
 Every number in this document lives in `reports/metrics_analysis.json`,
-`reports/metrics_pushdown.json` and `reports/data_manifest.json`.
+`reports/metrics_pushdown.json`, `reports/metrics_uncertainty.json`,
+`reports/metrics_bigquery.json` and `reports/data_manifest.json`.

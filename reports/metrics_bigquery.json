@@ -1,0 +1,234 @@
+{
+  "agreement_with_ncei": {
+    "all_counts_identical": true,
+    "all_differences_same_sign": null,
+    "largest_abs_pct_difference": 0.0,
+    "note": "BigQuery's noaa_gsod mirrors the same NCEI product, so this checks two parsers and two retrieval dates against each other -- not two independent measurements of the weather. See docs/DECISIONS.md section 2.1.",
+    "rows": [
+      {
+        "bigquery": 221063,
+        "difference": 0,
+        "event": "fog",
+        "ncei_archive": 221063,
+        "pct_difference": 0.0
+      },
+      {
+        "bigquery": 4516,
+        "difference": 0,
+        "event": "hail",
+        "ncei_archive": 4516,
+        "pct_difference": 0.0
+      },
+      {
+        "bigquery": 983613,
+        "difference": 0,
+        "event": "rain_drizzle",
+        "ncei_archive": 983613,
+        "pct_difference": 0.0
+      },
+      {
+        "bigquery": 237933,
+        "difference": 0,
+        "event": "snow_ice_pellets",
+        "ncei_archive": 237933,
+        "pct_difference": 0.0
+      },
+      {
+        "bigquery": 176911,
+        "difference": 0,
+        "event": "thunder",
+        "ncei_archive": 176911,
+        "pct_difference": 0.0
+      },
+      {
+        "bigquery": 207,
+        "difference": 0,
+        "event": "tornado_funnel_cloud",
+        "ncei_archive": 207,
+        "pct_difference": 0.0
+      }
+    ]
+  },
+  "column_pruning": {
+    "bytes_saved": 694226060,
+    "note": "Locally, column pruning was 10x of a 38.7x speed-up and cost nothing but a one-word change. Here it is the same one-word change and it is billed.",
+    "scan_ratio": 10.8,
+    "select_star_bytes": 764991602,
+    "six_flag_columns_bytes": 70765542,
+    "usd_saved_per_run": 0.003946
+  },
+  "dataset": "bigquery-public-data.noaa_gsod.gsod2024",
+  "pricing": {
+    "note": "BigQuery on-demand analysis, USD 6.25 per TiB scanned, us multi-region, rate read September 2026. The first 1 TiB each month is free, which is more than this script uses. Storage of the public dataset is paid by Google under the Public Datasets Program, so the reader pays only for the bytes their own query scans.",
+    "usd_per_tib_scanned": 6.25
+  },
+  "project_note": "The project id is a command-line argument and is not recorded here; it identifies the reader's account, not the data.",
+  "queries": [
+    {
+      "bytes_billed": 71303168,
+      "bytes_processed": 70765542,
+      "cache_hit": false,
+      "elapsed_seconds": 1.407,
+      "estimated_bytes_processed": 70765542,
+      "estimated_usd": 0.000402,
+      "executed": true,
+      "name": "event_counts_2024",
+      "rows": [
+        {
+          "fog": 221063,
+          "hail": 4516,
+          "rain_drizzle": 983613,
+          "snow_ice_pellets": 237933,
+          "station_days": 3931419,
+          "thunder": 176911,
+          "tornado_funnel_cloud": 207
+        }
+      ],
+      "rows_returned": 1,
+      "slot_millis": 246,
+      "usd_at_bytes_billed": 0.000405
+    },
+    {
+      "bytes_billed": 102760448,
+      "bytes_processed": 102216894,
+      "cache_hit": false,
+      "elapsed_seconds": 1.099,
+      "estimated_bytes_processed": 102216894,
+      "estimated_usd": 0.000581,
+      "executed": true,
+      "name": "monthly_events",
+      "rows": [
+        {
+          "fog": 24917,
+          "hail": 417,
+          "month": 1,
+          "rain_drizzle": 70654,
+          "snow_ice_pellets": 56786,
+          "station_days": 346531,
+          "thunder": 7031,
+          "tornado_funnel_cloud": 14
+        },
+        {
+          "fog": 18498,
+          "hail": 373,
+          "month": 2,
+          "rain_drizzle": 68040,
+          "snow_ice_pellets": 38220,
+          "station_days": 323345,
+          "thunder": 6968,
+          "tornado_funnel_cloud": 16
+        },
+        {
+          "fog": 16076,
+          "hail": 339,
+          "month": 3,
+          "rain_drizzle": 70438,
+          "snow_ice_pellets": 28847,
+          "station_days": 307991,
+          "thunder": 8925,
+          "tornado_funnel_cloud": 6
+        },
+        {
+          "fog": 11807,
+          "hail": 389,
+          "month": 4,
+          "rain_drizzle": 82001,
+          "snow_ice_pellets": 16842,
+          "station_days": 323438,
+          "thunder": 12365,
+          "tornado_funnel_cloud": 13
+        },
+        {
+          "fog": 15602,
+          "hail": 522,
+          "month": 5,
+          "rain_drizzle": 95401,
+          "snow_ice_pellets": 7039,
+          "station_days": 332890,
+          "thunder": 22456,
+          "tornado_funnel_cloud": 24
+        },
+        {
+          "fog": 14211,
+          "hail": 314,
+          "month": 6,
+          "rain_drizzle": 95900,
+          "snow_ice_pellets": 1901,
+          "station_days": 331348,
+          "thunder": 24950,
+          "tornado_funnel_cloud": 21
+        },
+        {
+          "fog": 17138,
+          "hail": 220,
+          "month": 7,
+          "rain_drizzle": 100343,
+          "snow_ice_pellets": 1120,
+          "station_days": 342371,
+          "thunder": 27040,
+          "tornado_funnel_cloud": 16
+        },
+        {
+          "fog": 16985,
+          "hail": 218,
+          "month": 8,
+          "rain_drizzle": 89594,
+          "snow_ice_pellets": 1009,
+          "station_days": 334577,
+          "thunder": 23949,
+          "tornado_funnel_cloud": 24
+        },
+        {
+          "fog": 18715,
+          "hail": 235,
+          "month": 9,
+          "rain_drizzle": 88221,
+          "snow_ice_pellets": 2799,
+          "station_days": 329959,
+          "thunder": 15413,
+          "tornado_funnel_cloud": 20
+        },
+        {
+          "fog": 20605,
+          "hail": 383,
+          "month": 10,
+          "rain_drizzle": 79598,
+          "snow_ice_pellets": 11596,
+          "station_days": 337832,
+          "thunder": 11984,
+          "tornado_funnel_cloud": 26
+        },
+        {
+          "fog": 20411,
+          "hail": 519,
+          "month": 11,
+          "rain_drizzle": 69375,
+          "snow_ice_pellets": 27597,
+          "station_days": 291524,
+          "thunder": 8393,
+          "tornado_funnel_cloud": 16
+        },
+        {
+          "fog": 26098,
+          "hail": 587,
+          "month": 12,
+          "rain_drizzle": 74048,
+          "snow_ice_pellets": 44177,
+          "station_days": 329613,
+          "thunder": 7437,
+          "tornado_funnel_cloud": 11
+        }
+      ],
+      "rows_returned": 12,
+      "slot_millis": 507,
+      "usd_at_bytes_billed": 0.000584
+    },
+    {
+      "estimated_bytes_processed": 764991602,
+      "estimated_usd": 0.004348,
+      "executed": false,
+      "name": "select_star",
+      "not_executed_because": "SELECT * is here to be priced, not to be paid for"
+    }
+  ]
+}

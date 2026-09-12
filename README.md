@@ -1,7 +1,7 @@
 # Weather events and temperature in NOAA GSOD, counted in SQL
 
 [![CI](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml/badge.svg)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-92%20passing-brightgreen)](https://github.com/JosElias23/noaa-gsod-climate/actions/workflows/ci.yml)
 [![python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
 [![data](https://img.shields.io/badge/data-NOAA%20GSOD%20public%20domain-lightgrey)](https://www.ncei.noaa.gov/data/global-summary-of-the-day/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -87,8 +87,8 @@ identical results:
 
 | Approach | Time | Rows to client | Client memory | Speed-up |
 |---|---:|---:|---:|---:|
-| `SELECT *`, count in pandas | 1.586 s | 3,931,419 | 644 MB | 1.0× |
-| Only the six flag columns | 0.157 s | 3,931,419 | 22.5 MB | 10.1× |
+| `SELECT *`, count in pandas | 1.586 s | 3,931,419 | 644 MiB | 1.0× |
+| Only the six flag columns | 0.157 s | 3,931,419 | 22.5 MiB | 10.1× |
 | **`SUM(...)` in SQL** | **0.041 s** | **1** | **180 B** | **38.7×** |
 
 **38.7× faster, and 3.75 million times less data handed back to Python.**
@@ -154,6 +154,82 @@ not a trend.
 
 ---
 
+## The same six numbers, out of BigQuery
+
+`sql/bigquery.sql` had been in this repository since the first commit, with a
+comment promising it "returns the same six numbers". Nobody had run it.
+
+The first time anything did, it failed:
+
+```
+No matching signature for aggregate function COUNTIF
+  Argument types: STRING
+  Signature: COUNTIF(BOOL)
+```
+
+In `bigquery-public-data.noaa_gsod` the six indicator columns are `STRING`
+holding `'0'` and `'1'`, so `COUNTIF(fog)` is a type error. **The file could
+never have produced any number at all**, and the limitations section said as
+much without knowing it: "checked by eye against the DuckDB queries, not by a
+test. If it drifts, nothing catches it."
+
+Fixed to `COUNTIF(fog = '1')`, it runs — and agrees exactly:
+
+| Event | NCEI archive (this repo) | BigQuery | Difference |
+|---|---:|---:|---:|
+| Rain / drizzle | 983,613 | 983,613 | **0** |
+| Snow / ice pellets | 237,933 | 237,933 | **0** |
+| Fog | 221,063 | 221,063 | **0** |
+| Thunder | 176,911 | 176,911 | **0** |
+| Hail | 4,516 | 4,516 | **0** |
+| Tornado / funnel cloud | 207 | 207 | **0** |
+
+Not close — identical, on all six, with BigQuery's table holding 3,931,419 rows
+against the 3,931,419 station-days parsed here. A hand-written `csv.DictReader`
+and Google's ingestion of the same NOAA product produce the same counts.
+
+That also explains the +1.5% differences [further up](#two-independent-paths-agree):
+those were against a BigQuery query run in **March 2025**, and a query run
+**today** matches today's archive perfectly. The gap was *when*, not *how*.
+
+### Column pruning, now with a price on it
+
+The local experiment measured seconds and client memory. BigQuery bills bytes
+scanned, so the same one-word change appears on an invoice:
+
+| Query | Bytes scanned | USD | Ran? |
+|---|---:|---:|:--|
+| `SELECT *` | 729.6 MiB | 0.0043 | **no — priced, not executed** |
+| Six flag columns, aggregated | **68.0 MiB** | **0.0004** | yes, 1.41 s |
+| Monthly grouping | 98.0 MiB | 0.0006 | yes, 1.10 s |
+
+**10.8× fewer bytes for naming six columns** — against the 10.1× speed-up the
+identical change bought on DuckDB. Two engines measuring two different things,
+seconds and bytes, landing in the same place.
+
+The `SELECT *` row was never executed. BigQuery will plan a query and report
+what it would scan without running it, free and without a billing account, so
+showing the cost of a query nobody should run does not require paying it. A test
+asserts that arm stays unexecuted.
+
+The whole run scanned 166 MiB and cost about a tenth of a US cent, inside
+BigQuery's free monthly terabyte. The rate is named and dated in the script,
+because a cost figure whose assumption is invisible is not a cost figure.
+
+**This does not make the project a cloud project.** Every published number still
+comes from NCEI, for the reason in
+[`docs/DECISIONS.md`](docs/DECISIONS.md) section 2.1: a reader without a Google
+account has to be able to check them. What changed is that the other path is
+executed, priced and tested instead of asserted — and the assertion was false.
+
+```bash
+pip install -e ".[cloud]"
+gcloud auth application-default login
+python scripts/run_bigquery.py --project YOUR_PROJECT_ID
+```
+
+---
+
 ## Data
 
 NOAA **Global Summary of the Day**, from the NCEI archive:
@@ -167,8 +243,8 @@ which is the point: clone this and every number above reproduces.
 | Years | 2020–2024 |
 | Station-days | 20,110,620 |
 | Stations | 12,953 |
-| Downloaded | 434 MB (gzip) |
-| Warehouse | 187 MB (Parquet, zstd) |
+| Downloaded | 434 MiB (gzip) |
+| Warehouse | 187 MiB (Parquet, zstd) |
 
 The same data is also `bigquery-public-data.noaa_gsod` and the AWS Open Data
 bucket `s3://noaa-gsod-pds`, both of which serve it without credentials for
@@ -181,15 +257,19 @@ published numbers come from NCEI rather than BigQuery.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                        # 74 tests, no network needed
-python scripts/build_warehouse.py       # ~434 MB, about 3 minutes
+python -m pytest                        # 92 tests, no network needed
+python scripts/build_warehouse.py       # ~434 MiB, about 3 minutes
 python scripts/run_analysis.py          # writes reports/metrics_analysis.json
 python scripts/compare_pushdown.py      # writes reports/metrics_pushdown.json
 python scripts/run_uncertainty.py       # writes reports/metrics_uncertainty.json
+
+pip install -e ".[cloud]"               # optional: the BigQuery arm
+python scripts/run_bigquery.py --project YOUR_PROJECT_ID
 ```
 
 Every figure in this README is read from `reports/metrics_analysis.json`,
-`reports/metrics_pushdown.json` or `reports/data_manifest.json`, each produced by
+`reports/metrics_pushdown.json`, `reports/metrics_uncertainty.json`,
+`reports/metrics_bigquery.json` or `reports/data_manifest.json`, each produced by
 the commands above. The archives are checksummed on download and the SHA-256 of
 what was actually parsed is recorded in the manifest.
 
@@ -214,9 +294,10 @@ instruments or partial years are not screened.
 **Events are flags, not intensities.** A drizzle and a downpour are both
 `rain_drizzle = 1`.
 
-**The BigQuery path is not run in CI**, because that would need a billing
-account. `sql/bigquery.sql` is checked by eye against the DuckDB queries, not by
-a test.
+**The BigQuery path is not run in CI**, because that would need credentials CI
+does not have. It is run locally by `scripts/run_bigquery.py` and its results are
+committed to `reports/metrics_bigquery.json`; four of the tests covering it run
+offline on every push and six skip until that report exists.
 
 ## License
 

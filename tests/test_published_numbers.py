@@ -231,3 +231,65 @@ class TestDataProperties:
         deltas = [c["delta"] for c in
                   analysis["cross_check_vs_original_notebook"]["per_event"]]
         assert deltas and all(d > 0 for d in deltas)
+
+
+@pytest.mark.parametrize("lang", LANGS)
+class TestBigQueryFigures:
+    """The cloud arm's numbers, in both languages.
+
+    Added when `sql/bigquery.sql` was run for the first time and turned out not
+    to work at all. The figures it produced are quoted in two READMEs and one
+    decision log, which is three places for them to drift.
+    """
+
+    @pytest.fixture(scope="class")
+    def bq(self):
+        path = REPORTS / "metrics_bigquery.json"
+        if not path.exists():
+            pytest.skip("reports/metrics_bigquery.json not generated; "
+                        "run scripts/run_bigquery.py")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_the_scan_ratio_is_quoted(self, bq, prose, lang):
+        text, _, fmt_dec, _ = prose[lang]
+        ratio = bq["column_pruning"]["scan_ratio"]
+        assert f"{fmt_dec(ratio, 1)}×" in text, (
+            f"[{lang}] column-pruning ratio {fmt_dec(ratio, 1)}x missing")
+
+    def test_every_executed_query_reports_its_bytes(self, bq, prose, lang):
+        """Each row of the cost table must be a number from the report.
+
+        Formatted with the same helper the script prints with, rather than
+        re-derived here. Doing the arithmetic twice is how a test ends up
+        asserting 71.3 MB against a README that says 68.0 MiB, with both sides
+        internally consistent and the units silently different.
+        """
+        from gsod.utils import human_bytes
+
+        text, _, fmt_dec, _ = prose[lang]
+        for query in bq["queries"]:
+            raw = query.get("bytes_billed", query["estimated_bytes_processed"])
+            printed = human_bytes(raw)
+            if lang == "es":
+                printed = printed.replace(".", ",")
+            assert printed in text, (
+                f"[{lang}] {query['name']} scans {printed}, not stated")
+
+    def test_the_counts_agree_and_the_prose_says_so(self, bq, prose, lang):
+        """Identical counts are the finding; a difference would change the text."""
+        agreement = bq.get("agreement_with_ncei")
+        if agreement is None:
+            pytest.skip("the counts query was not executed in this run")
+        assert agreement["all_counts_identical"], (
+            "BigQuery and NCEI no longer agree exactly, so the READMEs claiming "
+            "they do are now wrong and need rewriting rather than this test "
+            "relaxing"
+        )
+        text, fmt_int, _, _ = prose[lang]
+        for row in agreement["rows"]:
+            assert fmt_int(row["bigquery"]) in text, (
+                f"[{lang}] {row['event']} = {fmt_int(row['bigquery'])} missing")
+
+    def test_the_expensive_arm_was_never_executed(self, bq, prose, lang):
+        star = next(q for q in bq["queries"] if q["name"] == "select_star")
+        assert star["executed"] is False

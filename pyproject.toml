@@ -20,6 +20,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.6"]
+# Optional on purpose. Every published number in this repository comes from the
+# credential-free NCEI path, so a reader who never installs this still
+# reproduces the whole README. scripts/run_bigquery.py is the one thing that
+# needs it, and it needs a Google account too.
+cloud = ["google-cloud-bigquery>=3.25"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
