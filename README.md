@@ -156,7 +156,8 @@ not a trend.
 
 ## The same six numbers, out of BigQuery
 
-`sql/bigquery.sql` had been in this repository since the first commit, with a
+`sql/bigquery.sql` arrived in `9fb245f`, the commit that introduced the SQL
+analysis itself, with a
 comment promising it "returns the same six numbers". Nobody had run it.
 
 The first time anything did, it failed:

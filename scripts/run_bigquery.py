@@ -1,6 +1,6 @@
 """Run the BigQuery arm for real, and price it.
 
-`sql/bigquery.sql` has been in this repository since the first commit with a
+`sql/bigquery.sql` arrived in `9fb245f`, alongside the SQL analysis itself, with a
 comment saying it "returns the same six numbers" — checked by eye, never
 executed, never tested. Section 6 of `docs/DECISIONS.md` listed that as the
 project's largest hole: the cloud-warehouse path is the more interesting one

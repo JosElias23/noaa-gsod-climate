@@ -162,7 +162,8 @@ media de una red son una medición, no una tendencia.
 
 ## Los mismos seis números, saliendo de BigQuery
 
-`sql/bigquery.sql` estaba en este repositorio desde el primer commit, con un
+`sql/bigquery.sql` llegó en `9fb245f`, el commit que introdujo el propio
+análisis en SQL, con un
 comentario prometiendo que «devuelve los mismos seis números». Nadie lo había
 corrido.
 
